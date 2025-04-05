@@ -1,0 +1,2 @@
+# Jaafar-Generator
+ QR Generator
