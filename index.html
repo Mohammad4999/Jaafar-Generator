@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>جعفر QR مولد - صانع رموز الاستجابة السريعة</title>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
@@ -46,6 +46,7 @@
         }
         
         .container {
+            width: 100%;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
@@ -502,6 +503,47 @@
         
         /* التكيف مع الشاشات الصغيرة */
         @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .logo {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .logo img {
+                margin: 0 0 10px 0;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-section, .qrcode-container {
+                padding: 15px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .action-buttons button {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+                margin-top: 15px;
+            }
+            
             .sidebar {
                 width: 100%;
                 right: -100%;
@@ -511,21 +553,58 @@
                 right: 0;
             }
             
-            .features {
-                grid-template-columns: 1fr;
-            }
-            
             .type-selector {
                 flex-direction: column;
             }
-            
-            .action-buttons {
-                flex-direction: column;
+        }
+        
+        /* تكيف مع الشاشات المتوسطة */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                max-width: 90%;
             }
             
-            .action-buttons button {
-                max-width: 100%;
+            .features {
+                grid-template-columns: repeat(2, 1fr);
             }
+        }
+        
+        /* تعديلات للهواتف الصغيرة */
+        @media (max-width: 480px) {
+            .logo h1 {
+                font-size: 24px;
+            }
+            
+            .logo p {
+                font-size: 14px;
+            }
+            
+            .app-description {
+                font-size: 16px;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 16px;
+            }
+            
+            .sidebar-section {
+                padding: 10px;
+            }
+        }
+        
+        /* إصلاح مشكلة لوحة المفاتيح في iOS */
+        @media screen and (max-width: 767px) {
+            input, textarea, select {
+                font-size: 16px !important;
+            }
+        }
+        
+        /* تحسين زر التنزيل للهواتف */
+        .download-btn {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     </style>
 </head>
@@ -752,6 +831,9 @@
             
             // تعيين نص حسب النوع المحدد
             updateContentLabel();
+            
+            // منع الإكمال التلقائي في iOS
+            document.querySelector('input[name="fake"]').style.display = 'none';
         });
         
         // عرض شاشة البداية أو شاشة العمل
@@ -955,132 +1037,124 @@
                 const qr = qrcode(0, 'H');
                 qr.addData(text);
                 qr.make();
-                  // إنشاء Canvas للرسم
+                
+                // إنشاء Canvas للرسم
                 const canvas = document.createElement('canvas');
                 const size = qr.getModuleCount() * 10;
                 canvas.width = size;
                 canvas.height = size;
-                const ctx = canvas.getContext('2d'); // كان ينقص هذا السطر
+                const ctx = canvas.getContext('2d');
 
+                // تعبئة الخلفية البيضاء
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, size, size);
 
-
-            // تعبئة الخلفية البيضاء
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, size, size);
-
-            // رسم وحدات QR Code مع التدرج اللوني إذا كان مفعلاً
-            for (let row = 0; row < qr.getModuleCount(); row++) {
-                for (let col = 0; col < qr.getModuleCount(); col++) {
-                    if (qr.isDark(row, col)) {
-                        const x = row * 10;
-                        const y = col * 10;
-                        
-                        if (appState.useGradient) {
-                            // إنشاء تدرج لوني
-                            const gradient = ctx.createLinearGradient(x, y, x + 10, y + 10);
-                            gradient.addColorStop(0, appState.selectedColor);
-                            gradient.addColorStop(1, appState.gradientColor);
-                            ctx.fillStyle = gradient;
-                        } else {
-                            ctx.fillStyle = appState.selectedColor;
-                        }
-                        
-                        // تطبيق شكل الزوايا حسب الاختيار
-                        if (appState.shape === 'rounded') {
-                            ctx.beginPath();
-                            ctx.roundRect(x, y, 10, 10, [3]);
-                            ctx.fill();
-                        } else {
-                            ctx.fillRect(x, y, 10, 10);
+                // رسم وحدات QR Code مع التدرج اللوني إذا كان مفعلاً
+                for (let row = 0; row < qr.getModuleCount(); row++) {
+                    for (let col = 0; col < qr.getModuleCount(); col++) {
+                        if (qr.isDark(row, col)) {
+                            const x = row * 10;
+                            const y = col * 10;
+                            
+                            if (appState.useGradient) {
+                                // إنشاء تدرج لوني
+                                const gradient = ctx.createLinearGradient(x, y, x + 10, y + 10);
+                                gradient.addColorStop(0, appState.selectedColor);
+                                gradient.addColorStop(1, appState.gradientColor);
+                                ctx.fillStyle = gradient;
+                            } else {
+                                ctx.fillStyle = appState.selectedColor;
+                            }
+                            
+                            // تطبيق شكل الزوايا حسب الاختيار
+                            if (appState.shape === 'rounded') {
+                                ctx.beginPath();
+                                ctx.roundRect(x, y, 10, 10, [3]);
+                                ctx.fill();
+                            } else {
+                                ctx.fillRect(x, y, 10, 10);
+                            }
                         }
                     }
                 }
-            }
 
-            // إضافة الشعار إذا كان موجوداً
-            if (appState.logo) {
-                const logoSize = parseInt(document.getElementById('logo-size').value);
-                const logoWidth = (size * logoSize) / 100;
-                const logoHeight = (size * logoSize) / 100;
-                const logoX = (size - logoWidth) / 2;
-                const logoY = (size - logoHeight) / 2;
+                // إضافة الشعار إذا كان موجوداً
+                if (appState.logo) {
+                    const logoSize = parseInt(document.getElementById('logo-size').value);
+                    const logoWidth = (size * logoSize) / 100;
+                    const logoHeight = (size * logoSize) / 100;
+                    const logoX = (size - logoWidth) / 2;
+                    const logoY = (size - logoHeight) / 2;
+                    
+                    // رسم خلفية بيضاء للشعار
+                    ctx.fillStyle = '#ffffff';
+                    if (appState.shape === 'rounded') {
+                        ctx.beginPath();
+                        ctx.roundRect(logoX - 5, logoY - 5, logoWidth + 10, logoHeight + 10, [10]);
+                        ctx.fill();
+                    } else {
+                        ctx.fillRect(logoX - 5, logoY - 5, logoWidth + 10, logoHeight + 10);
+                    }
+                    
+                    // رسم الشعار
+                    ctx.drawImage(appState.logo, logoX, logoY, logoWidth, logoHeight);
+                }
+
+                // تحويل Canvas إلى صورة وعرضها
+                const qrImg = new Image();
+                qrImg.src = canvas.toDataURL('image/png');
+                document.getElementById('qrcode').appendChild(qrImg);
                 
-                // رسم خلفية بيضاء للشعار
-                ctx.fillStyle = '#ffffff';
-                if (appState.shape === 'rounded') {
-                    ctx.beginPath();
-                    ctx.roundRect(logoX - 5, logoY - 5, logoWidth + 10, logoHeight + 10, [10]);
-                    ctx.fill();
-                } else {
-                    ctx.fillRect(logoX - 5, logoY - 5, logoWidth + 10, logoHeight + 10);
+                // حفظ الرمز في المحفوظات
+                saveToHistory(text, qrImg.src);
+                
+                // تفعيل زر التحميل
+                document.getElementById('download-btn').disabled = false;
+                
+            } catch (error) {
+                console.error('حدث خطأ أثناء إنشاء رمز QR:', error);
+                alert('حدث خطأ أثناء إنشاء رمز QR، يرجى المحاولة مرة أخرى');
+            }
+        }
+
+        function saveToHistory(text, imageSrc) {
+            const historyItem = {
+                type: appState.currentType,
+                content: text,
+                image: imageSrc,
+                date: new Date().toISOString(),
+                color: appState.selectedColor,
+                shape: appState.shape
+            };
+            
+            appState.history.unshift(historyItem);
+            if (appState.history.length > 10) {
+                appState.history.pop();
+            }
+            
+            saveSettings();
+            updateHistoryList();
+        }
+
+        function downloadQRCode() {
+            try {
+                const qrImg = document.querySelector('#qrcode img');
+                if (!qrImg) {
+                    throw new Error('لا يوجد رمز QR لتحميله');
                 }
                 
-                // رسم الشعار
-                ctx.drawImage(appState.logo, logoX, logoY, logoWidth, logoHeight);
+                const link = document.createElement('a');
+                link.href = qrImg.src;
+                link.download = `رمز-qr-${new Date().getTime()}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+            } catch (error) {
+                console.error('حدث خطأ أثناء تحميل رمز QR:', error);
+                alert('حدث خطأ أثناء تحميل رمز QR، يرجى المحاولة مرة أخرى');
             }
-
-            // تحويل Canvas إلى صورة وعرضها
-            const qrImg = new Image();
-            qrImg.src = canvas.toDataURL('image/png');
-            document.getElementById('qrcode').appendChild(qrImg);
-            
-            // حفظ الرمز في المحفوظات
-            saveToHistory(text, qrImg.src);
-            
-            // تفعيل زر التحميل
-            document.getElementById('download-btn').disabled = false;
-            
-        } catch (error) {
-            console.error('حدث خطأ أثناء إنشاء رمز QR:', error);
-            alert('حدث خطأ أثناء إنشاء رمز QR، يرجى المحاولة مرة أخرى');
         }
-    }
-
-    function saveToHistory(text, imageSrc) {
-        const historyItem = {
-            type: appState.currentType,
-            content: text,
-            image: imageSrc,
-            date: new Date().toISOString(),
-            color: appState.selectedColor,
-            shape: appState.shape
-        };
-        
-        appState.history.unshift(historyItem);
-        if (appState.history.length > 10) {
-            appState.history.pop();
-        }
-        
-        saveSettings();
-        updateHistoryList();
-    }
-
-    function downloadQRCode() {
-        try {
-            const qrImg = document.querySelector('#qrcode img');
-            if (!qrImg) {
-                throw new Error('لا يوجد رمز QR لتحميله');
-            }
-            
-            const link = document.createElement('a');
-            link.href = qrImg.src;
-            link.download = `رمز-qr-${new Date().getTime()}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-        } catch (error) {
-            console.error('حدث خطأ أثناء تحميل رمز QR:', error);
-            alert('حدث خطأ أثناء تحميل رمز QR، يرجى المحاولة مرة أخرى');
-        }
-    }
-</script>
-
-
-
-
-
-
-
-
-
+    </script>
+</body>
+</html>
